@@ -18,10 +18,18 @@ import torch.utils.data
 import torch.utils.data.distributed
 import torchvision.datasets as datasets
 # import torchvision.models as models
-from vision import models
 import torchvision.transforms as transforms
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import Subset
+from torch.utils.tensorboard import SummaryWriter
+writerdir = "runs" # "runs_"+time.strftime("%Y%m%d%H%M%S",time.gmtime())
+mywriter = SummaryWriter(writerdir)
+
+IS_MYNET = False # False
+if IS_MYNET:
+    import vision.models.resnet_with_dropout as models
+else:
+    import vision.models.resnet as models
 
 model_names = sorted(name for name in models.__dict__
     if name.islower() and not name.startswith("__")
@@ -141,10 +149,10 @@ def main_worker(gpu, ngpus_per_node, args):
     # create model
     if args.pretrained:
         print("=> using pre-trained model '{}'".format(args.arch))
-        model = models.__dict__[args.arch](pretrained=True)
+        model = models.__dict__[args.arch](pretrained=True,num_classes=200)
     else:
         print("=> creating model '{}'".format(args.arch))
-        model = models.__dict__[args.arch]()
+        model = models.__dict__[args.arch](num_classes=200)
 
     if not torch.cuda.is_available() and not torch.backends.mps.is_available():
         print('using CPU, this will be slow')
@@ -227,8 +235,8 @@ def main_worker(gpu, ngpus_per_node, args):
     # Data loading code
     if args.dummy:
         print("=> Dummy data is used!")
-        train_dataset = datasets.FakeData(1281167, (3, 224, 224), 200, transforms.ToTensor())
-        val_dataset = datasets.FakeData(50000, (3, 224, 224), 200, transforms.ToTensor())
+        train_dataset = datasets.FakeData(1281167, (3, 64, 64), 200, transforms.ToTensor())
+        val_dataset = datasets.FakeData(50000, (3, 64, 64), 200, transforms.ToTensor())
     else:
         traindir = os.path.join(args.data, 'train')
         valdir = os.path.join(args.data, 'val')
@@ -248,7 +256,7 @@ def main_worker(gpu, ngpus_per_node, args):
             valdir,
             transforms.Compose([
                 # transforms.Resize(256),
-                transforms.CenterCrop(224),
+                # transforms.CenterCrop(224),
                 transforms.ToTensor(),
                 normalize,
             ]))
@@ -267,6 +275,10 @@ def main_worker(gpu, ngpus_per_node, args):
     val_loader = torch.utils.data.DataLoader(
         val_dataset, batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True, sampler=val_sampler)
+    
+    # 可视化模型
+    image0,label0 = next(iter(train_loader))
+    mywriter.add_graph(model,image0)
 
     if args.evaluate:
         validate(val_loader, model, criterion, args)
