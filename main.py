@@ -25,7 +25,7 @@ from torch.utils.tensorboard import SummaryWriter
 writerdir = "runs" # "runs_"+time.strftime("%Y%m%d%H%M%S",time.gmtime())
 mywriter = SummaryWriter(writerdir)
 
-IS_MYNET = False # False
+IS_MYNET = True # False
 if IS_MYNET:
     import vision.models.resnet_with_dropout as models
 else:
@@ -87,6 +87,7 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'fastest way to use PyTorch for either single node or '
                          'multi node data parallel training')
 parser.add_argument('--dummy', action='store_true', help="use fake data to benchmark")
+parser.add_argument('--p_dropout', default=0.5, type=float,help='dropout in myresnet')
 
 best_acc1 = 0
 
@@ -152,7 +153,10 @@ def main_worker(gpu, ngpus_per_node, args):
         model = models.__dict__[args.arch](pretrained=True,num_classes=200)
     else:
         print("=> creating model '{}'".format(args.arch))
-        model = models.__dict__[args.arch](num_classes=200)
+        if IS_MYNET:
+            model = models.__dict__[args.arch](num_classes=200,p_dropout=args.p_dropout)
+        else:
+            model = models.__dict__[args.arch](num_classes=200)
 
     if not torch.cuda.is_available() and not torch.backends.mps.is_available():
         print('using CPU, this will be slow')
