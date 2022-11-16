@@ -174,6 +174,7 @@ class ResNet(nn.Module):
         width_per_group: int = 64,
         replace_stride_with_dilation: Optional[List[bool]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
+        p_dropout:float = 0.5
     ) -> None:
         super().__init__()
         _log_api_usage_once(self)
@@ -207,10 +208,10 @@ class ResNet(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear((512*block.expansion),4096),
             nn.ReLU(),
-            nn.Dropout(0.5),
+            nn.Dropout(p_dropout),
             nn.Linear(4096,4096),
             nn.ReLU(),
-            nn.Dropout(0.5),
+            nn.Dropout(p_dropout),
             nn.Linear(4096,num_classes)
         )
 
