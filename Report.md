@@ -45,6 +45,7 @@ resnet的主要特征有
 - 观察到相比于AlexNet,VGG-19, ResNet中去掉了网络末端将2维特征图展开后的3层全连接层,仅使用了输出维度等于样本类别数的一层全连接层代替。因此探究对于较浅的残差网络ResNet-18,加上这3层全连接层是否会对模型性能有所提升。
 - 在3层全连接层中,为防止过拟合,AlexNet中用到了dropout来随机丢弃一些神经元。探究不同的丢弃概率p对任务的影响。
 ![fc_layer](./assets/fc_layer.png)
+
 ### 设计思路
 实验的任务是Tiny-ImageSet下的图像分类,网络基本模型采用ResNet18, 基于torchvision中ResNet的实现。
 - 首先修改models/resnet.py中的ResNet类,在__init__()函数中重新定义全连接层:
@@ -72,6 +73,10 @@ resnet的主要特征有
 - 由于添加3层全连接层后参数量增大,训练每个epoch所需时间变长。
 - 对于此任务,在dropout的丢弃概率设为0.3时,取得最优的结果。可能原因是由于ResNet-18网络层数较浅, 不会造成较严重的过拟合。
 
+### 代码组织
+myresnet在文件`vision/resnet_with_dropout.py`中实现.`vision/`下的其他文件为torchvision实现resNet的代码。
+具体的读取数据集、训练、评估等操作再`main.py`中实现。
+
 ### 代码复现
 环境版本为pytorch==1.12.1,torchvision==0.13.1。
 将`tiny_ImageNet_200_reorg`数据集解压后放在`data/`目录下。
@@ -84,3 +89,7 @@ resnet的主要特征有
 在`main.py`line 28, 设置变量`ISMYNET`的值`True`.
 然后运行`python main.py ./data --evaluate --resume ./logs_myresnet/model_best.pth.tar --p_dropout 0.5`.
 通过修改参数为`--resume ./log_myresnet_dropout_0.3/model_best.pth.tar --p_dropout 0.3`或`--resume ./log_myresnet_dropout_0.7/model_best.pth.tar --p_dropout 0.7`来测试dropout概率为0.3与0.7时的模型
+
+### 实验总结与心得体会
+- 在模型设计方面, 评估不同模型时需要平衡模型性能与训练开销。如果只为提升1%的性能,却极大的增加了参数量与训练开销,是得不偿失的
+- 在代码组织方面, 规范的定义函数接口以及清晰的注释对代码的维护有着极大的好处，例如得益于torchvision漂亮的源码,在为resnet添加参数`p_dropout`时,只需要在ResNet的类上直接添加,并赋一个初始值.这样在main函数中调用时只需多传入`model(...,p_dropout=0.3)`即可, 也不会影响已有代码的运行。
