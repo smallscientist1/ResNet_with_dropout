@@ -1,9 +1,11 @@
 # 第二次大作业
+<!--
 ## LeNet,AlexNet,ResNet示意图
 ![Lenet](./assets/LeNet.png)
 ![Alexnet](./assets/AlexNet.png)
 ![ResNet](./assets/ResNet.png)
-## 1
+-->
+## 1 LeNet
 LeNet中在ResNet中仍然存在的结构:
 - 使用多个卷积层构建网络,不断减小特征图的大小,增加特征图的通道数。
 - 通过下采样(maxPooling方法)减小特征图大小。
@@ -13,14 +15,14 @@ LeNet中在ResNet中仍然存在的结构:
 已弃用的结构:
 - LeNet输出层采用Gaussian connection(GBF)径向基函数,而AlexNet中舍弃了这一结构。
 
-## 2 AlexNet的改进
+## 2 AlexNet对于LeNet的改进
 - 增加了网络的层数, 包含5个卷积层、2个全连接层和1个全连接输出层
 - 将sigmoid激活函数改成了ReLU激活函数,计算更加简单
 - 引入大量数据增广, 包括翻转、裁剪、颜色变化等, 缓解过拟合
 - 引入dropout层, 缓解过拟合
 - 支持在多个GPU上训练
 
-## 3
+## 3 ResNet对于AlexNet
 ResNet中仍然存在
 - ReLU激活函数.
 - 数据增广,包括翻转、裁剪、颜色变化等.
@@ -31,7 +33,7 @@ ResNet中舍弃的:
 - 对于降采样,AlexNet中使用Maxpooling,而ResNet中使用步长为2的卷积层或Average pooling
 
 
-## 4
+## 4 修改ResNet
 ### resnet结构分析
 随着神经网络深度的不断增加,过多的层数会导致训练误差越来越高,引起模型优化的困难,导致性能退化.因此resnet使用残差映射(即让神经元去拟合差值$H(x)-x,H(x)为目标值$), 这样使得更容易得到期望的映射。
 resnet的主要特征有
