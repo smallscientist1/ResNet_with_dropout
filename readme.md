@@ -20,3 +20,4 @@ pytorch==1.12.1,torchvision==0.13.1
 ## train myresnet
 在`main.py`line 28, 设置变量`ISMYNET`的值`True`.
 然后运行`python main.py ./data --p_dropout [0-1]`.
+训练完成后可以使用`python main.py ./data --evaluate --p_dropout [0-1]`来用训练得到的模型进行测试。
